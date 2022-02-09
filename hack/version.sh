@@ -14,19 +14,17 @@
 # limitations under the License.
 
 set -o errexit
-set -o nounset
 set -o pipefail
 
 version::get_version_vars() {
     HASH_LENGTH=8
-    if [[ "${TAG} "]]; then
+    if [[ "${TAG}" ]]; then
         # shellcheck disable=SC2001
         GIT_VERSION=$(echo "${TAG}" | sed "s/v[0-9]\{8\}-//g")
         # shellcheck disable=SC2001
         GIT_COMMIT=$(echo "${TAG}" | sed "s/v[0-9]\{8\}-v\([0-9]\+\.\)\{2\}[0-9]\+-[0-9]\+-g//g")
         GIT_TREE_STATE="" # Can't set git tree state yet
-    # shellcheck disable=SC2034
-    elif IS_GIT_REPO="$(git rev-parse --is-inside-work-tree 2>/dev/null)"; then
+    elif eval "git rev-parse --is-inside-work-tree 2>/dev/null"; then
         # shellcheck disable=SC1083
         GIT_COMMIT="$(git rev-parse HEAD^{commit})"
         if git_status=$(git status --porcelain 2>/dev/null) && [[ -z ${git_status} ]]; then
