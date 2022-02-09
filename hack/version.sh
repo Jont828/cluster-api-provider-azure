@@ -18,16 +18,13 @@ set -o nounset
 set -o pipefail
 
 version::get_version_vars() {
-    # shellcheck disable=SC1083
     HASH_LENGTH=8
+    GIT_VERSION=$(echo "${TAG}" | sed "s/v[0-9]\{8\}-//g")
+    GIT_COMMIT=$(echo "${TAG}" | sed "s/v[0-9]\{8\}-v\([0-9]\+\.\)\{2\}[0-9]\+-[0-9]\+-g//g")
+    GIT_TREE_STATE="" # Can't set git tree state yet
 
-    GIT_VERSION=$(echo ${TAG} | sed "s/v[0-9]\{8\}-/g")
-    GIT_COMMIT=$(echo ${TAG} | sed "s/v[0-9]\{8\}-v\([0-9]\+\.\)\{2\}[0-9]\+-[0-9]\+-g//g")
-    # Can't set git tree state yet
-
-    IS_GIT_REPO="$(git rev-parse --is-inside-work-tree 2>/dev/null)"
-    if [[ "${IS_GIT_REPO}" == "true" ]]; then
-        # shellcheck disable=SC2034
+    if IS_GIT_REPO="$(git rev-parse --is-inside-work-tree 2>/dev/null)"; then
+        # shellcheck disable=SC1083
         GIT_COMMIT="$(git rev-parse HEAD^{commit})"
         if git_status=$(git status --porcelain 2>/dev/null) && [[ -z ${git_status} ]]; then
             GIT_TREE_STATE="clean"
@@ -39,7 +36,7 @@ version::get_version_vars() {
 
     # borrowed from k8s.io/hack/lib/version.sh
     # Use git describe to find the version based on tags.
-    if GIT_VERSION; then
+    if [[ GIT_VERSION ]]; then
         # This translates the "git describe" to an actual semver.org
         # compatible semantic version that looks something like this:
         #   v1.1.0-alpha.0.6+84c76d1142ea4d
