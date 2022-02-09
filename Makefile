@@ -236,6 +236,10 @@ env-info:
 	ls -la /workspace || echo ""
 	@echo "Output of /hack/version.sh:"
 	./hack/version.sh || echo ""
+	echo "GIT_TAG is $${TAG}"
+	echo "PULL_BASE_REF is $${PULL_BASE_REF}"
+	echo "REPO_NAME is $${REPO_NAME}"
+	echo "COMMIT_SHA is $${COMMIT_SHA}"
 
 ## --------------------------------------
 ## Binaries

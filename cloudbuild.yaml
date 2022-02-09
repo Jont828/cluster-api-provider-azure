@@ -10,6 +10,8 @@ steps:
       - DOCKER_CLI_EXPERIMENTAL=enabled
       - TAG=$_GIT_TAG
       - PULL_BASE_REF=$_PULL_BASE_REF
+      - REPO_NAME=$_REPO_NAME
+      - COMMIT_SHA=$_COMMIT_SHA
       - DOCKER_BUILDKIT=1
     args:
       - release-staging
@@ -18,3 +20,6 @@ substitutions:
   # can be used as a substitution
   _GIT_TAG: '12345'
   _PULL_BASE_REF: 'dev'
+  _REPO_NAME: 'my-repo'
+  _COMMIT_SHA: 'asdf01234'
+

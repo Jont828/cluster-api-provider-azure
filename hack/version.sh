@@ -19,17 +19,27 @@ set -o pipefail
 
 version::get_version_vars() {
     # shellcheck disable=SC1083
-    GIT_COMMIT="$(git rev-parse HEAD^{commit})"
+    HASH_LENGTH=8
 
-    if git_status=$(git status --porcelain 2>/dev/null) && [[ -z ${git_status} ]]; then
-        GIT_TREE_STATE="clean"
-    else
-        GIT_TREE_STATE="dirty"
+    GIT_VERSION=$(echo ${TAG} | sed "s/v[0-9]\{8\}-/g")
+    GIT_COMMIT=$(echo ${TAG} | sed "s/v[0-9]\{8\}-v\([0-9]\+\.\)\{2\}[0-9]\+-[0-9]\+-g//g")
+    # Can't set git tree state yet
+
+    IS_GIT_REPO="$(git rev-parse --is-inside-work-tree 2>/dev/null)"
+    if [[ "${IS_GIT_REPO}" == "true" ]]; then
+        # shellcheck disable=SC2034
+        GIT_COMMIT="$(git rev-parse HEAD^{commit})"
+        if git_status=$(git status --porcelain 2>/dev/null) && [[ -z ${git_status} ]]; then
+            GIT_TREE_STATE="clean"
+        else
+            GIT_TREE_STATE="dirty"
+        fi
+        GIT_VERSION=$(git describe --tags --abbrev=$HASH_LENGTH 2>/dev/null)
     fi
 
     # borrowed from k8s.io/hack/lib/version.sh
     # Use git describe to find the version based on tags.
-    if GIT_VERSION=$(git describe --tags --abbrev=14 2>/dev/null); then
+    if GIT_VERSION; then
         # This translates the "git describe" to an actual semver.org
         # compatible semantic version that looks something like this:
         #   v1.1.0-alpha.0.6+84c76d1142ea4d
@@ -38,11 +48,11 @@ version::get_version_vars() {
         if [[ "${DASHES_IN_VERSION}" == "---" ]] ; then
             # We have distance to subversion (v1.1.0-subversion-1-gCommitHash)
             # shellcheck disable=SC2001
-            GIT_VERSION=$(echo "${GIT_VERSION}" | sed "s/-\([0-9]\{1,\}\)-g\([0-9a-f]\{14\}\)$/.\1\-\2/")
+            GIT_VERSION=$(echo "${GIT_VERSION}" | sed "s/-\([0-9]\{1,\}\)-g\([0-9a-f]\{$HASH_LENGTH\}\)$/.\1\-\2/")
         elif [[ "${DASHES_IN_VERSION}" == "--" ]] ; then
             # We have distance to base tag (v1.1.0-1-gCommitHash)
             # shellcheck disable=SC2001
-            GIT_VERSION=$(echo "${GIT_VERSION}" | sed "s/-g\([0-9a-f]\{14\}\)$/-\1/")
+            GIT_VERSION=$(echo "${GIT_VERSION}" | sed "s/-g\([0-9a-f]\{$HASH_LENGTH\}\)$/-\1/")
             # TODO: What should the output of this command look like?
             # For example, v1.1.0-32-gfeb4736460af8f maps to v1.1.0-32-f, do we want the trailing "-f" or not?
         fi
