@@ -21,7 +21,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-10-01/resources"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/pkg/errors"
 	infrav1 "sigs.k8s.io/cluster-api-provider-azure/api/v1beta1"
 )
 
@@ -32,8 +31,7 @@ type TagsSpec struct {
 	// Annotation is the key which stores the last applied tags as value in JSON format.
 	// The last applied tags are used to find out which tags are being managed by CAPZ
 	// and if any has to be deleted by comparing it with the new desired tags
-	JSONAnnotation          string
-	CreateOrUpdateOperation bool
+	LastAppliedTags map[string]interface{}
 }
 
 // TagsScope returns the scope of a set of tags.
@@ -42,26 +40,26 @@ func (s *TagsSpec) TagsScope() string {
 }
 
 // MergeParameters returns the merge parameters for a set of tags.
-func (s *TagsSpec) MergeParameters(existing interface{}) (interface{}, error) {
+func (s *TagsSpec) MergeParameters(existing *resources.TagsResource) (*resources.TagsPatchResource, error) {
 	tags := make(map[string]*string)
 	if existing != nil {
-		existingTags, ok := existing.(resources.TagsResource)
-		if !ok {
-			return nil, errors.Errorf("%T is not a resources.TagsResource", existing)
-		}
+		// existingTags, ok := existing.(resources.TagsResource)
+		// if !ok {
+		// 	return nil, errors.Errorf("%T is not a resources.TagsResource", existing)
+		// }
 
-		if existingTags.Properties != nil && existingTags.Properties.Tags != nil {
-			tags = existingTags.Properties.Tags
+		if existing.Properties != nil && existing.Properties.Tags != nil {
+			tags = existing.Properties.Tags
 		}
 	}
 
-	lastAppliedTags, err := jsonAnnotationToMap(s.JSONAnnotation)
+	// lastAppliedTags, err := jsonAnnotationToMap(s.JSONAnnotation)
 	// lastAppliedTags, err := s.Scope.AnnotationJSON(s.Annotation)
-	if err != nil {
-		return nil, err
-	}
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	changed, createdOrUpdated, _ := getCreatedOrUpdatedTags(lastAppliedTags, s.Tags, tags)
+	changed, createdOrUpdated, _ := getCreatedOrUpdatedTags(s.LastAppliedTags, s.Tags, tags)
 	if !changed {
 		// Nothing to create or update.
 		return nil, nil
@@ -73,33 +71,33 @@ func (s *TagsSpec) MergeParameters(existing interface{}) (interface{}, error) {
 			createdOrUpdatedTags[k] = to.StringPtr(v)
 		}
 
-		return resources.TagsPatchResource{Operation: "Merge", Properties: &resources.Tags{Tags: createdOrUpdatedTags}}, nil
+		return &resources.TagsPatchResource{Operation: "Merge", Properties: &resources.Tags{Tags: createdOrUpdatedTags}}, nil
 	}
 
 	return nil, nil
 }
 
 // NewAnnotation returns the new annotation for a set of tags.
-func (s *TagsSpec) NewAnnotation(existing interface{}) (interface{}, error) {
+func (s *TagsSpec) NewAnnotation(existing *resources.TagsResource) (map[string]interface{}, error) {
 	tags := make(map[string]*string)
 	if existing != nil {
-		existingTags, ok := existing.(resources.TagsResource)
-		if !ok {
-			return nil, errors.Errorf("%T is not a resources.TagsResource", existing)
-		}
+		// existingTags, ok := existing.(resources.TagsResource)
+		// if !ok {
+		// 	return nil, errors.Errorf("%T is not a resources.TagsResource", existing)
+		// }
 
-		if existingTags.Properties != nil && existingTags.Properties.Tags != nil {
-			tags = existingTags.Properties.Tags
+		if existing.Properties != nil && existing.Properties.Tags != nil {
+			tags = existing.Properties.Tags
 		}
 	}
 
-	lastAppliedTags, err := jsonAnnotationToMap(s.JSONAnnotation)
+	// lastAppliedTags, err := jsonAnnotationToMap(s.JSONAnnotation)
 	// lastAppliedTags, err := s.Scope.AnnotationJSON(s.Annotation)
-	if err != nil {
-		return nil, err
-	}
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	changed, _, newAnnotation := getCreatedOrUpdatedTags(lastAppliedTags, s.Tags, tags)
+	changed, _, newAnnotation := getCreatedOrUpdatedTags(s.LastAppliedTags, s.Tags, tags)
 	if !changed {
 		// Nothing to create or update.
 		return nil, nil
@@ -109,14 +107,14 @@ func (s *TagsSpec) NewAnnotation(existing interface{}) (interface{}, error) {
 }
 
 // DeleteParameters returns the delete parameters for a set of tags.
-func (s *TagsSpec) DeleteParameters(existing interface{}) (interface{}, error) {
-	lastAppliedTags, err := jsonAnnotationToMap(s.JSONAnnotation)
+func (s *TagsSpec) DeleteParameters(existing *resources.TagsResource) (*resources.TagsPatchResource, error) {
+	// lastAppliedTags, err := jsonAnnotationToMap(s.JSONAnnotation)
 	// lastAppliedTags, err := s.Scope.AnnotationJSON(s.Annotation)
-	if err != nil {
-		return nil, err
-	}
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	changed, deleted := getDeletedTags(lastAppliedTags, s.Tags)
+	changed, deleted := getDeletedTags(s.LastAppliedTags, s.Tags)
 	if !changed {
 		// Nothing to delete, return nil
 		return nil, nil
@@ -128,7 +126,7 @@ func (s *TagsSpec) DeleteParameters(existing interface{}) (interface{}, error) {
 			deletedTags[k] = to.StringPtr(v)
 		}
 
-		return resources.TagsPatchResource{Operation: "Delete", Properties: &resources.Tags{Tags: deletedTags}}, nil
+		return &resources.TagsPatchResource{Operation: "Delete", Properties: &resources.Tags{Tags: deletedTags}}, nil
 	}
 
 	return nil, nil
@@ -225,69 +223,69 @@ func getDeletedTags(lastAppliedTags map[string]interface{}, desiredTags map[stri
 	return changed, deleted
 }
 
-// tagsChanged determines which tags to delete and which to add.
-func tagsChanged(lastAppliedTags map[string]interface{}, desiredTags map[string]string, currentTags map[string]*string) (bool, map[string]string, map[string]string, map[string]interface{}) {
-	// Bool tracking if we found any changed state.
-	changed := false
+// // tagsChanged determines which tags to delete and which to add.
+// func tagsChanged(lastAppliedTags map[string]interface{}, desiredTags map[string]string, currentTags map[string]*string) (bool, map[string]string, map[string]string, map[string]interface{}) {
+// 	// Bool tracking if we found any changed state.
+// 	changed := false
 
-	// Tracking for created/updated
-	createdOrUpdated := map[string]string{}
+// 	// Tracking for created/updated
+// 	createdOrUpdated := map[string]string{}
 
-	// Tracking for tags that were deleted.
-	deleted := map[string]string{}
+// 	// Tracking for tags that were deleted.
+// 	deleted := map[string]string{}
 
-	// The new annotation that we need to set if anything is created/updated.
-	newAnnotation := map[string]interface{}{}
+// 	// The new annotation that we need to set if anything is created/updated.
+// 	newAnnotation := map[string]interface{}{}
 
-	// Loop over lastAppliedTags, checking if entries are in desiredTags.
-	// If an entry is present in lastAppliedTags but not in desiredTags, it has been deleted
-	// since last time. We flag this in the deleted map.
-	for t, v := range lastAppliedTags {
-		_, ok := desiredTags[t]
+// 	// Loop over lastAppliedTags, checking if entries are in desiredTags.
+// 	// If an entry is present in lastAppliedTags but not in desiredTags, it has been deleted
+// 	// since last time. We flag this in the deleted map.
+// 	for t, v := range lastAppliedTags {
+// 		_, ok := desiredTags[t]
 
-		// Entry isn't in desiredTags, it has been deleted.
-		if !ok {
-			// Cast v to a string here. This should be fine, tags are always
-			// strings.
-			deleted[t] = v.(string)
-			changed = true
-		}
-	}
+// 		// Entry isn't in desiredTags, it has been deleted.
+// 		if !ok {
+// 			// Cast v to a string here. This should be fine, tags are always
+// 			// strings.
+// 			deleted[t] = v.(string)
+// 			changed = true
+// 		}
+// 	}
 
-	// Loop over desiredTags, checking for entries in currentTags.
-	//
-	// If an entry is in desiredTags, but not currentTags, it has been created since
-	// last time, or some external entity deleted it.
-	//
-	// If an entry is in both desiredTags and currentTags, we compare their values, if
-	// the value in desiredTags differs from that in currentTags, the tag has been
-	// updated since last time or some external entity modified it.
-	for t, v := range desiredTags {
-		av, ok := currentTags[t]
+// 	// Loop over desiredTags, checking for entries in currentTags.
+// 	//
+// 	// If an entry is in desiredTags, but not currentTags, it has been created since
+// 	// last time, or some external entity deleted it.
+// 	//
+// 	// If an entry is in both desiredTags and currentTags, we compare their values, if
+// 	// the value in desiredTags differs from that in currentTags, the tag has been
+// 	// updated since last time or some external entity modified it.
+// 	for t, v := range desiredTags {
+// 		av, ok := currentTags[t]
 
-		// Entries in the desiredTags always need to be noted in the newAnnotation. We
-		// know they're going to be created or updated.
-		newAnnotation[t] = v
+// 		// Entries in the desiredTags always need to be noted in the newAnnotation. We
+// 		// know they're going to be created or updated.
+// 		newAnnotation[t] = v
 
-		// Entry isn't in desiredTags, it's new.
-		if !ok {
-			createdOrUpdated[t] = v
-			newAnnotation[t] = v
-			changed = true
-			continue
-		}
+// 		// Entry isn't in desiredTags, it's new.
+// 		if !ok {
+// 			createdOrUpdated[t] = v
+// 			newAnnotation[t] = v
+// 			changed = true
+// 			continue
+// 		}
 
-		// Entry is in desiredTags, has the value changed?
-		if v != *av {
-			createdOrUpdated[t] = v
-			changed = true
-		}
+// 		// Entry is in desiredTags, has the value changed?
+// 		if v != *av {
+// 			createdOrUpdated[t] = v
+// 			changed = true
+// 		}
 
-		// Entry existed in both desiredTags and desiredTags, and their values were
-		// equal. Nothing to do.
-	}
+// 		// Entry existed in both desiredTags and desiredTags, and their values were
+// 		// equal. Nothing to do.
+// 	}
 
-	// We made it through the loop, and everything that was in desiredTags, was also
-	// in dst. Nothing changed.
-	return changed, createdOrUpdated, deleted, newAnnotation
-}
+// 	// We made it through the loop, and everything that was in desiredTags, was also
+// 	// in dst. Nothing changed.
+// 	return changed, createdOrUpdated, deleted, newAnnotation
+// }
