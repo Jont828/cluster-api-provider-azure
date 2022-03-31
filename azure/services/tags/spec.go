@@ -17,8 +17,6 @@ limitations under the License.
 package tags
 
 import (
-	"encoding/json"
-
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-10-01/resources"
 	"github.com/Azure/go-autorest/autorest/to"
 	infrav1 "sigs.k8s.io/cluster-api-provider-azure/api/v1beta1"
@@ -42,22 +40,9 @@ func (s *TagsSpec) TagsScope() string {
 // MergeParameters returns the merge parameters for a set of tags.
 func (s *TagsSpec) MergeParameters(existing *resources.TagsResource) (*resources.TagsPatchResource, error) {
 	tags := make(map[string]*string)
-	if existing != nil {
-		// existingTags, ok := existing.(resources.TagsResource)
-		// if !ok {
-		// 	return nil, errors.Errorf("%T is not a resources.TagsResource", existing)
-		// }
-
-		if existing.Properties != nil && existing.Properties.Tags != nil {
-			tags = existing.Properties.Tags
-		}
+	if existing != nil && existing.Properties != nil && existing.Properties.Tags != nil {
+		tags = existing.Properties.Tags
 	}
-
-	// lastAppliedTags, err := jsonAnnotationToMap(s.JSONAnnotation)
-	// lastAppliedTags, err := s.Scope.AnnotationJSON(s.Annotation)
-	// if err != nil {
-	// 	return nil, err
-	// }
 
 	changed, createdOrUpdated, _ := getCreatedOrUpdatedTags(s.LastAppliedTags, s.Tags, tags)
 	if !changed {
@@ -80,26 +65,13 @@ func (s *TagsSpec) MergeParameters(existing *resources.TagsResource) (*resources
 // NewAnnotation returns the new annotation for a set of tags.
 func (s *TagsSpec) NewAnnotation(existing *resources.TagsResource) (map[string]interface{}, error) {
 	tags := make(map[string]*string)
-	if existing != nil {
-		// existingTags, ok := existing.(resources.TagsResource)
-		// if !ok {
-		// 	return nil, errors.Errorf("%T is not a resources.TagsResource", existing)
-		// }
-
-		if existing.Properties != nil && existing.Properties.Tags != nil {
-			tags = existing.Properties.Tags
-		}
+	if existing != nil && existing.Properties != nil && existing.Properties.Tags != nil {
+		tags = existing.Properties.Tags
 	}
-
-	// lastAppliedTags, err := jsonAnnotationToMap(s.JSONAnnotation)
-	// lastAppliedTags, err := s.Scope.AnnotationJSON(s.Annotation)
-	// if err != nil {
-	// 	return nil, err
-	// }
 
 	changed, _, newAnnotation := getCreatedOrUpdatedTags(s.LastAppliedTags, s.Tags, tags)
 	if !changed {
-		// Nothing to create or update.
+		// Nothing created or updated.
 		return nil, nil
 	}
 
@@ -108,12 +80,6 @@ func (s *TagsSpec) NewAnnotation(existing *resources.TagsResource) (map[string]i
 
 // DeleteParameters returns the delete parameters for a set of tags.
 func (s *TagsSpec) DeleteParameters(existing *resources.TagsResource) (*resources.TagsPatchResource, error) {
-	// lastAppliedTags, err := jsonAnnotationToMap(s.JSONAnnotation)
-	// lastAppliedTags, err := s.Scope.AnnotationJSON(s.Annotation)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
 	changed, deleted := getDeletedTags(s.LastAppliedTags, s.Tags)
 	if !changed {
 		// Nothing to delete, return nil
@@ -130,19 +96,6 @@ func (s *TagsSpec) DeleteParameters(existing *resources.TagsResource) (*resource
 	}
 
 	return nil, nil
-}
-
-// jsonAnnotationToMap returns a map[string]interface from a JSON annotation.
-func jsonAnnotationToMap(jsonAnnotation string) (map[string]interface{}, error) {
-	out := map[string]interface{}{}
-	if len(jsonAnnotation) == 0 {
-		return out, nil
-	}
-	err := json.Unmarshal([]byte(jsonAnnotation), &out)
-	if err != nil {
-		return out, err
-	}
-	return out, nil
 }
 
 // getCreatedOrUpdatedTags determines which tags to which to add.
