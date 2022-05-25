@@ -616,14 +616,14 @@ func (s *ManagedControlPlaneScope) SetAnnotation(key, value string) {
 }
 
 // TagsSpecs returns the tag specs for the ManagedControlPlane.
-func (s *ManagedControlPlaneScope) TagsSpecs() ([]tags.TagsSpec, error) {
+func (s *ManagedControlPlaneScope) TagsSpecs() ([]azure.TagsSpecGetter, error) {
 	annotationMap, err := s.AnnotationJSON(azure.RGTagsLastAppliedAnnotation)
 	if err != nil {
 		return nil, err
 	}
 
-	return []tags.TagsSpec{
-		{
+	return []azure.TagsSpecGetter{
+		&tags.TagsSpec{
 			Scope:           azure.ResourceGroupID(s.SubscriptionID(), s.ResourceGroup()),
 			Tags:            s.AdditionalTags(),
 			LastAppliedTags: annotationMap,

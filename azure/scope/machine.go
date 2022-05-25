@@ -175,14 +175,14 @@ func (m *MachineScope) VMSpec() azure.ResourceSpecGetter {
 }
 
 // TagsSpecs returns the tags for the AzureMachine.
-func (m *MachineScope) TagsSpecs() ([]tags.TagsSpec, error) {
+func (m *MachineScope) TagsSpecs() ([]azure.TagsSpecGetter, error) {
 	annotationMap, err := m.AnnotationJSON(azure.VMTagsLastAppliedAnnotation)
 	if err != nil {
 		return nil, err
 	}
 
-	return []tags.TagsSpec{
-		{
+	return []azure.TagsSpecGetter{
+		&tags.TagsSpec{
 			Scope:           azure.VMID(m.SubscriptionID(), m.ResourceGroup(), m.Name()),
 			Tags:            m.AdditionalTags(),
 			LastAppliedTags: annotationMap,

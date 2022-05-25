@@ -32,7 +32,7 @@ const serviceName = "tags"
 type TagScope interface {
 	azure.Authorizer
 	ClusterName() string
-	TagsSpecs() ([]TagsSpec, error)
+	TagsSpecs() ([]azure.TagsSpecGetter, error)
 	AnnotationJSON(string) (map[string]interface{}, error)
 	UpdateAnnotationJSON(string, map[string]interface{}) error
 }
@@ -66,7 +66,7 @@ func (s *Service) Reconcile(ctx context.Context) error {
 		return errors.Wrap(err, "failed to get tags specs")
 	}
 
-	updateTagsPatchResource := func(spec TagsSpec, params *resources.TagsPatchResource) error {
+	updateTagsPatchResource := func(spec azure.TagsSpecGetter, params *resources.TagsPatchResource) error {
 		if params == nil {
 			return nil
 		}

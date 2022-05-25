@@ -950,14 +950,14 @@ func (s *ClusterScope) SetAnnotation(key, value string) {
 }
 
 // TagsSpecs returns the tag specs for the AzureCluster.
-func (s *ClusterScope) TagsSpecs() ([]tags.TagsSpec, error) {
+func (s *ClusterScope) TagsSpecs() ([]azure.TagsSpecGetter, error) {
 	annotationMap, err := s.AnnotationJSON(azure.RGTagsLastAppliedAnnotation)
 	if err != nil {
 		return nil, err
 	}
 
-	return []tags.TagsSpec{
-		{
+	return []azure.TagsSpecGetter{
+		&tags.TagsSpec{
 			Scope:           azure.ResourceGroupID(s.SubscriptionID(), s.ResourceGroup()),
 			Tags:            s.AdditionalTags(),
 			LastAppliedTags: annotationMap,

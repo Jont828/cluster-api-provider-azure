@@ -27,8 +27,8 @@ import (
 
 // client wraps go-sdk.
 type client interface {
-	GetAtScope(context.Context, TagsSpec) (resources.TagsResource, error)
-	UpdateAtScope(context.Context, TagsSpec, resources.TagsPatchResource) (resources.TagsResource, error)
+	GetAtScope(context.Context, azure.TagsSpecGetter) (resources.TagsResource, error)
+	UpdateAtScope(context.Context, azure.TagsSpecGetter, resources.TagsPatchResource) (resources.TagsResource, error)
 }
 
 // azureClient contains the Azure go-sdk Client.
@@ -52,7 +52,7 @@ func newTagsClient(subscriptionID string, baseURI string, authorizer autorest.Au
 }
 
 // GetAtScope sends the get at scope request.
-func (ac *azureClient) GetAtScope(ctx context.Context, spec TagsSpec) (resources.TagsResource, error) {
+func (ac *azureClient) GetAtScope(ctx context.Context, spec azure.TagsSpecGetter) (resources.TagsResource, error) {
 	ctx, _, done := tele.StartSpanWithLogger(ctx, "tags.AzureClient.GetAtScope")
 	defer done()
 
@@ -61,7 +61,7 @@ func (ac *azureClient) GetAtScope(ctx context.Context, spec TagsSpec) (resources
 
 // UpdateAtScope this operation allows replacing, merging or selectively deleting tags on the specified resource or
 // subscription.
-func (ac *azureClient) UpdateAtScope(ctx context.Context, spec TagsSpec, parameters resources.TagsPatchResource) (resources.TagsResource, error) {
+func (ac *azureClient) UpdateAtScope(ctx context.Context, spec azure.TagsSpecGetter, parameters resources.TagsPatchResource) (resources.TagsResource, error) {
 	ctx, _, done := tele.StartSpanWithLogger(ctx, "tags.AzureClient.UpdateAtScope")
 	defer done()
 
