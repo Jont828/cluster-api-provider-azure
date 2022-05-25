@@ -36,6 +36,7 @@ import (
 	"sigs.k8s.io/cluster-api-provider-azure/azure/services/networkinterfaces"
 	"sigs.k8s.io/cluster-api-provider-azure/azure/services/resourceskus"
 	"sigs.k8s.io/cluster-api-provider-azure/azure/services/roleassignments"
+	"sigs.k8s.io/cluster-api-provider-azure/azure/services/tags"
 	"sigs.k8s.io/cluster-api-provider-azure/azure/services/virtualmachines"
 	"sigs.k8s.io/cluster-api-provider-azure/azure/services/vmextensions"
 	"sigs.k8s.io/cluster-api-provider-azure/util/futures"
@@ -174,14 +175,19 @@ func (m *MachineScope) VMSpec() azure.ResourceSpecGetter {
 }
 
 // TagsSpecs returns the tags for the AzureMachine.
-func (m *MachineScope) TagsSpecs() []azure.TagsSpec {
-	return []azure.TagsSpec{
-		{
-			Scope:      azure.VMID(m.SubscriptionID(), m.ResourceGroup(), m.Name()),
-			Tags:       m.AdditionalTags(),
-			Annotation: azure.VMTagsLastAppliedAnnotation,
-		},
+func (m *MachineScope) TagsSpecs() ([]tags.TagsSpec, error) {
+	annotationMap, err := m.AnnotationJSON(azure.VMTagsLastAppliedAnnotation)
+	if err != nil {
+		return nil, err
 	}
+
+	return []tags.TagsSpec{
+		{
+			Scope:           azure.VMID(m.SubscriptionID(), m.ResourceGroup(), m.Name()),
+			Tags:            m.AdditionalTags(),
+			LastAppliedTags: annotationMap,
+		},
+	}, nil
 }
 
 // PublicIPSpecs returns the public IP specs.

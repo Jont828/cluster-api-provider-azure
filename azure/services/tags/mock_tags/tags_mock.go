@@ -25,7 +25,7 @@ import (
 
 	autorest "github.com/Azure/go-autorest/autorest"
 	gomock "github.com/golang/mock/gomock"
-	azure "sigs.k8s.io/cluster-api-provider-azure/azure"
+	tags "sigs.k8s.io/cluster-api-provider-azure/azure/services/tags"
 )
 
 // MockTagScope is a mock of TagScope interface.
@@ -179,11 +179,12 @@ func (mr *MockTagScopeMockRecorder) SubscriptionID() *gomock.Call {
 }
 
 // TagsSpecs mocks base method.
-func (m *MockTagScope) TagsSpecs() []azure.TagsSpec {
+func (m *MockTagScope) TagsSpecs() ([]tags.TagsSpec, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TagsSpecs")
-	ret0, _ := ret[0].([]azure.TagsSpec)
-	return ret0
+	ret0, _ := ret[0].([]tags.TagsSpec)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // TagsSpecs indicates an expected call of TagsSpecs.
