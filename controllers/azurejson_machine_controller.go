@@ -41,8 +41,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 // AzureJSONMachineReconciler reconciles Azure json secrets for AzureMachine objects.
@@ -60,13 +62,35 @@ func (r *AzureJSONMachineReconciler) SetupWithManager(ctx context.Context, mgr c
 	)
 	defer done()
 
-	return ctrl.NewControllerManagedBy(mgr).
+	azureMachineMapper, err := util.ClusterToObjectsMapper(r.Client, &infrav1.AzureMachineList{}, mgr.GetScheme())
+	if err != nil {
+		return errors.Wrap(err, "failed to create mapper for Cluster to AzureMachines")
+	}
+
+	c, err := ctrl.NewControllerManagedBy(mgr).
 		WithOptions(options).
 		For(&infrav1.AzureMachine{}).
 		WithEventFilter(filterUnclonedMachinesPredicate{log: log}).
 		WithEventFilter(predicates.ResourceNotPausedAndHasFilterLabel(log, r.WatchFilterValue)).
 		Owns(&corev1.Secret{}).
-		Complete(r)
+		Build(r)
+
+	if err != nil {
+		return errors.Wrap(err, "failed to create controller")
+	}
+
+	// Add a watch on Clusters to requeue when the infraRef is set. This is needed because the infraRef is not initially
+	// set in Clusters created from a ClusterClass.
+	if err := c.Watch(
+		&source.Kind{Type: &clusterv1.Cluster{}},
+		handler.EnqueueRequestsFromMapFunc(azureMachineMapper),
+		// predicates.ClusterUnpausedAndInfrastructureReady(log),
+		// predicates.ResourceNotPausedAndHasFilterLabel(log, r.WatchFilterValue),
+	); err != nil {
+		return errors.Wrap(err, "failed adding a watch for Clusters")
+	}
+
+	return nil
 }
 
 type filterUnclonedMachinesPredicate struct {
@@ -126,6 +150,9 @@ func (r *AzureJSONMachineReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		return reconcile.Result{}, err
 	}
 
+	log.Info("Reconciling AzureMachine", "name", azureMachine.Name, "namespace", azureMachine.Namespace)
+	log.Info("OwnerRefs for AzureMachine", "name", azureMachine.Name, "namespace", azureMachine.Namespace, "ownerRefs", azureMachine.OwnerReferences)
+
 	// Fetch the Cluster.
 	cluster, err := util.GetClusterFromMetadata(ctx, r.Client, azureMachine.ObjectMeta)
 	if err != nil {
@@ -146,6 +173,7 @@ func (r *AzureJSONMachineReconciler) Reconcile(ctx context.Context, req ctrl.Req
 
 	_, kind := infrav1.GroupVersion.WithKind("AzureCluster").ToAPIVersionAndKind()
 
+	log.Info("Cluster spec for AzureMachine is", "azureMachine", azureMachine.Name, "cluster", cluster.Name, "clusterSpec", cluster.Spec)
 	// only look at azure clusters
 	if cluster.Spec.InfrastructureRef == nil {
 		log.Info("infra ref is nil")
