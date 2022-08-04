@@ -84,8 +84,8 @@ func (r *AzureJSONMachineReconciler) SetupWithManager(ctx context.Context, mgr c
 	if err := c.Watch(
 		&source.Kind{Type: &clusterv1.Cluster{}},
 		handler.EnqueueRequestsFromMapFunc(azureMachineMapper),
-		// predicates.ClusterUnpausedAndInfrastructureReady(log),
-		// predicates.ResourceNotPausedAndHasFilterLabel(log, r.WatchFilterValue),
+		predicates.ClusterUnpausedAndInfrastructureReady(log),
+		predicates.ResourceNotPausedAndHasFilterLabel(log, r.WatchFilterValue),
 	); err != nil {
 		return errors.Wrap(err, "failed adding a watch for Clusters")
 	}

@@ -61,7 +61,7 @@ func (r *AzureJSONTemplateReconciler) SetupWithManager(ctx context.Context, mgr 
 
 	azureMachineTemplateMapper, err := util.ClusterToObjectsMapper(r.Client, &infrav1.AzureMachineTemplateList{}, mgr.GetScheme())
 	if err != nil {
-		return errors.Wrap(err, "failed to create mapper for Cluster to AzureMachines")
+		return errors.Wrap(err, "failed to create mapper for Cluster to AzureMachineTemplates")
 	}
 
 	c, err := ctrl.NewControllerManagedBy(mgr).
@@ -80,8 +80,8 @@ func (r *AzureJSONTemplateReconciler) SetupWithManager(ctx context.Context, mgr 
 	if err := c.Watch(
 		&source.Kind{Type: &clusterv1.Cluster{}},
 		handler.EnqueueRequestsFromMapFunc(azureMachineTemplateMapper),
-		// predicates.ClusterUnpausedAndInfrastructureReady(log),
-		// predicates.ResourceNotPausedAndHasFilterLabel(log, r.WatchFilterValue),
+		predicates.ClusterUnpausedAndInfrastructureReady(log),
+		predicates.ResourceNotPausedAndHasFilterLabel(log, r.WatchFilterValue),
 	); err != nil {
 		return errors.Wrap(err, "failed adding a watch for Clusters")
 	}
