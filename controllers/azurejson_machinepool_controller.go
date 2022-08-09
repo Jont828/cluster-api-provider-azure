@@ -80,7 +80,9 @@ func (r *AzureJSONMachinePoolReconciler) SetupWithManager(ctx context.Context, m
 	if err := c.Watch(
 		&source.Kind{Type: &clusterv1.Cluster{}},
 		handler.EnqueueRequestsFromMapFunc(azureMachinePoolMapper),
+		// TODO: add a predicate for the infraRef to be set.
 		predicates.ClusterUnpausedAndInfrastructureReady(log),
+		ResourceIsNotTopologyOwned(log),
 		predicates.ResourceNotPausedAndHasFilterLabel(log, r.WatchFilterValue),
 	); err != nil {
 		return errors.Wrap(err, "failed adding a watch for Clusters")
