@@ -24,6 +24,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	resources "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-10-01/resources"
 	autorest "github.com/Azure/go-autorest/autorest"
 	gomock "github.com/golang/mock/gomock"
 	v1beta1 "sigs.k8s.io/cluster-api-provider-azure/api/v1beta1"
@@ -1745,4 +1746,86 @@ func (m *MockResourceSpecGetterWithHeaders) ResourceName() string {
 func (mr *MockResourceSpecGetterWithHeadersMockRecorder) ResourceName() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResourceName", reflect.TypeOf((*MockResourceSpecGetterWithHeaders)(nil).ResourceName))
+}
+
+// MockTagsSpecGetter is a mock of TagsSpecGetter interface.
+type MockTagsSpecGetter struct {
+	ctrl     *gomock.Controller
+	recorder *MockTagsSpecGetterMockRecorder
+}
+
+// MockTagsSpecGetterMockRecorder is the mock recorder for MockTagsSpecGetter.
+type MockTagsSpecGetterMockRecorder struct {
+	mock *MockTagsSpecGetter
+}
+
+// NewMockTagsSpecGetter creates a new mock instance.
+func NewMockTagsSpecGetter(ctrl *gomock.Controller) *MockTagsSpecGetter {
+	mock := &MockTagsSpecGetter{ctrl: ctrl}
+	mock.recorder = &MockTagsSpecGetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockTagsSpecGetter) EXPECT() *MockTagsSpecGetterMockRecorder {
+	return m.recorder
+}
+
+// DeleteParameters mocks base method.
+func (m *MockTagsSpecGetter) DeleteParameters(existing *resources.TagsResource) (*resources.TagsPatchResource, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteParameters", existing)
+	ret0, _ := ret[0].(*resources.TagsPatchResource)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteParameters indicates an expected call of DeleteParameters.
+func (mr *MockTagsSpecGetterMockRecorder) DeleteParameters(existing interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteParameters", reflect.TypeOf((*MockTagsSpecGetter)(nil).DeleteParameters), existing)
+}
+
+// MergeParameters mocks base method.
+func (m *MockTagsSpecGetter) MergeParameters(existing *resources.TagsResource) (*resources.TagsPatchResource, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MergeParameters", existing)
+	ret0, _ := ret[0].(*resources.TagsPatchResource)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// MergeParameters indicates an expected call of MergeParameters.
+func (mr *MockTagsSpecGetterMockRecorder) MergeParameters(existing interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MergeParameters", reflect.TypeOf((*MockTagsSpecGetter)(nil).MergeParameters), existing)
+}
+
+// NewAnnotation mocks base method.
+func (m *MockTagsSpecGetter) NewAnnotation(existing *resources.TagsResource) (map[string]interface{}, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NewAnnotation", existing)
+	ret0, _ := ret[0].(map[string]interface{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NewAnnotation indicates an expected call of NewAnnotation.
+func (mr *MockTagsSpecGetterMockRecorder) NewAnnotation(existing interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewAnnotation", reflect.TypeOf((*MockTagsSpecGetter)(nil).NewAnnotation), existing)
+}
+
+// TagsScope mocks base method.
+func (m *MockTagsSpecGetter) TagsScope() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TagsScope")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// TagsScope indicates an expected call of TagsScope.
+func (mr *MockTagsSpecGetterMockRecorder) TagsScope() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TagsScope", reflect.TypeOf((*MockTagsSpecGetter)(nil).TagsScope))
 }

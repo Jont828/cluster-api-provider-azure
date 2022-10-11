@@ -38,7 +38,7 @@ func (s *TagsSpec) TagsScope() string {
 }
 
 // MergeParameters returns the merge parameters for a set of tags.
-func (s *TagsSpec) MergeParameters(existing *resources.TagsResource) (*resources.TagsPatchResource, error) {
+func (s *TagsSpec) MergeParameters(existing *resources.TagsResource) *resources.TagsPatchResource {
 	tags := make(map[string]*string)
 	if existing != nil && existing.Properties != nil && existing.Properties.Tags != nil {
 		tags = existing.Properties.Tags
@@ -47,7 +47,7 @@ func (s *TagsSpec) MergeParameters(existing *resources.TagsResource) (*resources
 	changed, createdOrUpdated, _ := getCreatedOrUpdatedTags(s.LastAppliedTags, s.Tags, tags)
 	if !changed {
 		// Nothing to create or update.
-		return nil, nil
+		return nil
 	}
 
 	if len(createdOrUpdated) > 0 {
@@ -56,14 +56,14 @@ func (s *TagsSpec) MergeParameters(existing *resources.TagsResource) (*resources
 			createdOrUpdatedTags[k] = to.StringPtr(v)
 		}
 
-		return &resources.TagsPatchResource{Operation: "Merge", Properties: &resources.Tags{Tags: createdOrUpdatedTags}}, nil
+		return &resources.TagsPatchResource{Operation: "Merge", Properties: &resources.Tags{Tags: createdOrUpdatedTags}}
 	}
 
-	return nil, nil
+	return nil
 }
 
 // NewAnnotation returns the new annotation for a set of tags.
-func (s *TagsSpec) NewAnnotation(existing *resources.TagsResource) (map[string]interface{}, error) {
+func (s *TagsSpec) NewAnnotation(existing *resources.TagsResource) map[string]interface{} {
 	tags := make(map[string]*string)
 	if existing != nil && existing.Properties != nil && existing.Properties.Tags != nil {
 		tags = existing.Properties.Tags
@@ -72,18 +72,18 @@ func (s *TagsSpec) NewAnnotation(existing *resources.TagsResource) (map[string]i
 	changed, _, newAnnotation := getCreatedOrUpdatedTags(s.LastAppliedTags, s.Tags, tags)
 	if !changed {
 		// Nothing created or updated.
-		return nil, nil
+		return nil
 	}
 
-	return newAnnotation, nil
+	return newAnnotation
 }
 
 // DeleteParameters returns the delete parameters for a set of tags.
-func (s *TagsSpec) DeleteParameters(existing *resources.TagsResource) (*resources.TagsPatchResource, error) {
+func (s *TagsSpec) DeleteParameters(existing *resources.TagsResource) *resources.TagsPatchResource {
 	changed, deleted := getDeletedTags(s.LastAppliedTags, s.Tags)
 	if !changed {
 		// Nothing to delete, return nil
-		return nil, nil
+		return nil
 	}
 
 	if len(deleted) > 0 {
@@ -92,10 +92,10 @@ func (s *TagsSpec) DeleteParameters(existing *resources.TagsResource) (*resource
 			deletedTags[k] = to.StringPtr(v)
 		}
 
-		return &resources.TagsPatchResource{Operation: "Delete", Properties: &resources.Tags{Tags: deletedTags}}, nil
+		return &resources.TagsPatchResource{Operation: "Delete", Properties: &resources.Tags{Tags: deletedTags}}
 	}
 
-	return nil, nil
+	return nil
 }
 
 // getCreatedOrUpdatedTags determines which tags to which to add.

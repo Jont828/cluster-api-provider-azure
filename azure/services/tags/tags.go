@@ -87,27 +87,18 @@ func (s *Service) Reconcile(ctx context.Context) error {
 			continue
 		}
 
-		createdOrUpdatedParams, err := tagsSpec.MergeParameters(&existingTags)
-		if err != nil {
-			return errors.Wrap(err, "failed to get merge operation parameters")
-		}
+		createdOrUpdatedParams := tagsSpec.MergeParameters(&existingTags)
 		if err := updateTagsPatchResource(tagsSpec, createdOrUpdatedParams); err != nil {
 			return err
 		}
 
-		deleteParams, err := tagsSpec.DeleteParameters(&existingTags)
-		if err != nil {
-			return errors.Wrap(err, "failed to get delete operation parameters")
-		}
+		deleteParams := tagsSpec.DeleteParameters(&existingTags)
 		if err := updateTagsPatchResource(tagsSpec, deleteParams); err != nil {
 			return err
 		}
 
-		annotations, err := tagsSpec.NewAnnotation(&existingTags)
-		if err != nil {
-			return errors.Wrap(err, "failed to get annotation")
-		}
-		if err := s.Scope.UpdateAnnotationJSON(tagsSpec.TagsScope(), annotations); err != nil {
+		annotations := tagsSpec.NewAnnotation(&existingTags)
+		if err := s.Scope.UpdateAnnotationJSON(azure.RGTagsLastAppliedAnnotation, annotations); err != nil {
 			return errors.Wrap(err, "failed to update annotation")
 		}
 	}

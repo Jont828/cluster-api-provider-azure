@@ -130,9 +130,9 @@ type TagsSpecGetter interface {
 	// TagsScope returns the scope of a set of tags.
 	TagsScope() string
 	// MergeParameters returns the merge parameters for a set of tags.
-	MergeParameters(existing *resources.TagsResource) (*resources.TagsPatchResource, error)
+	MergeParameters(existing *resources.TagsResource) *resources.TagsPatchResource
 	// NewAnnotation returns the new annotation for a set of tags.
-	NewAnnotation(existing *resources.TagsResource) (map[string]interface{}, error)
+	NewAnnotation(existing *resources.TagsResource) map[string]interface{}
 	// DeleteParameters returns the delete parameters for a set of tags.
-	DeleteParameters(existing *resources.TagsResource) (*resources.TagsPatchResource, error)
+	DeleteParameters(existing *resources.TagsResource) *resources.TagsPatchResource
 }

@@ -29,31 +29,31 @@ import (
 	azure "sigs.k8s.io/cluster-api-provider-azure/azure"
 )
 
-// Mockclient is a mock of client interface.
-type Mockclient struct {
+// MockClient is a mock of Client interface.
+type MockClient struct {
 	ctrl     *gomock.Controller
-	recorder *MockclientMockRecorder
+	recorder *MockClientMockRecorder
 }
 
-// MockclientMockRecorder is the mock recorder for Mockclient.
-type MockclientMockRecorder struct {
-	mock *Mockclient
+// MockClientMockRecorder is the mock recorder for MockClient.
+type MockClientMockRecorder struct {
+	mock *MockClient
 }
 
-// NewMockclient creates a new mock instance.
-func NewMockclient(ctrl *gomock.Controller) *Mockclient {
-	mock := &Mockclient{ctrl: ctrl}
-	mock.recorder = &MockclientMockRecorder{mock}
+// NewMockClient creates a new mock instance.
+func NewMockClient(ctrl *gomock.Controller) *MockClient {
+	mock := &MockClient{ctrl: ctrl}
+	mock.recorder = &MockClientMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *Mockclient) EXPECT() *MockclientMockRecorder {
+func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
 // GetAtScope mocks base method.
-func (m *Mockclient) GetAtScope(arg0 context.Context, arg1 azure.TagsSpecGetter) (resources.TagsResource, error) {
+func (m *MockClient) GetAtScope(arg0 context.Context, arg1 azure.TagsSpecGetter) (resources.TagsResource, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAtScope", arg0, arg1)
 	ret0, _ := ret[0].(resources.TagsResource)
@@ -62,13 +62,13 @@ func (m *Mockclient) GetAtScope(arg0 context.Context, arg1 azure.TagsSpecGetter)
 }
 
 // GetAtScope indicates an expected call of GetAtScope.
-func (mr *MockclientMockRecorder) GetAtScope(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) GetAtScope(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAtScope", reflect.TypeOf((*Mockclient)(nil).GetAtScope), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAtScope", reflect.TypeOf((*MockClient)(nil).GetAtScope), arg0, arg1)
 }
 
 // UpdateAtScope mocks base method.
-func (m *Mockclient) UpdateAtScope(arg0 context.Context, arg1 azure.TagsSpecGetter, arg2 resources.TagsPatchResource) (resources.TagsResource, error) {
+func (m *MockClient) UpdateAtScope(arg0 context.Context, arg1 azure.TagsSpecGetter, arg2 resources.TagsPatchResource) (resources.TagsResource, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateAtScope", arg0, arg1, arg2)
 	ret0, _ := ret[0].(resources.TagsResource)
@@ -77,7 +77,7 @@ func (m *Mockclient) UpdateAtScope(arg0 context.Context, arg1 azure.TagsSpecGett
 }
 
 // UpdateAtScope indicates an expected call of UpdateAtScope.
-func (mr *MockclientMockRecorder) UpdateAtScope(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) UpdateAtScope(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAtScope", reflect.TypeOf((*Mockclient)(nil).UpdateAtScope), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAtScope", reflect.TypeOf((*MockClient)(nil).UpdateAtScope), arg0, arg1, arg2)
 }
