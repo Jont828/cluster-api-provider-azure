@@ -25,23 +25,23 @@ import (
 	"sigs.k8s.io/cluster-api-provider-azure/util/tele"
 )
 
-// client wraps go-sdk.
-type client interface {
+// Client wraps go-sdk.
+type Client interface {
 	GetAtScope(context.Context, string) (resources.TagsResource, error)
 	UpdateAtScope(context.Context, string, resources.TagsPatchResource) (resources.TagsResource, error)
 }
 
 // azureClient contains the Azure go-sdk Client.
-type azureClient struct {
+type AureClient struct {
 	tags resources.TagsClient
 }
 
-var _ client = (*azureClient)(nil)
+var _ Client = (*AureClient)(nil)
 
-// newClient creates a new tags client from subscription ID.
-func newClient(auth azure.Authorizer) *azureClient {
+// NewClient creates a new tags client from subscription ID.
+func NewClient(auth azure.Authorizer) *AureClient {
 	c := newTagsClient(auth.SubscriptionID(), auth.BaseURI(), auth.Authorizer())
-	return &azureClient{c}
+	return &AureClient{c}
 }
 
 // newTagsClient creates a new tags client from subscription ID.
@@ -52,7 +52,7 @@ func newTagsClient(subscriptionID string, baseURI string, authorizer autorest.Au
 }
 
 // GetAtScope sends the get at scope request.
-func (ac *azureClient) GetAtScope(ctx context.Context, scope string) (resources.TagsResource, error) {
+func (ac *AureClient) GetAtScope(ctx context.Context, scope string) (resources.TagsResource, error) {
 	ctx, _, done := tele.StartSpanWithLogger(ctx, "tags.AzureClient.GetAtScope")
 	defer done()
 
@@ -61,7 +61,7 @@ func (ac *azureClient) GetAtScope(ctx context.Context, scope string) (resources.
 
 // UpdateAtScope this operation allows replacing, merging or selectively deleting tags on the specified resource or
 // subscription.
-func (ac *azureClient) UpdateAtScope(ctx context.Context, scope string, parameters resources.TagsPatchResource) (resources.TagsResource, error) {
+func (ac *AureClient) UpdateAtScope(ctx context.Context, scope string, parameters resources.TagsPatchResource) (resources.TagsResource, error) {
 	ctx, _, done := tele.StartSpanWithLogger(ctx, "tags.AzureClient.UpdateAtScope")
 	defer done()
 

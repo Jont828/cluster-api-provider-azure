@@ -41,14 +41,14 @@ type TagScope interface {
 // Service provides operations on Azure resources.
 type Service struct {
 	Scope TagScope
-	client
+	Client
 }
 
 // New creates a new service.
 func New(scope TagScope) *Service {
 	return &Service{
 		Scope:  scope,
-		client: newClient(scope),
+		Client: NewClient(scope),
 	}
 }
 
@@ -63,7 +63,7 @@ func (s *Service) Reconcile(ctx context.Context) error {
 	defer done()
 
 	for _, tagsSpec := range s.Scope.TagsSpecs() {
-		existingTags, err := s.client.GetAtScope(ctx, tagsSpec.Scope)
+		existingTags, err := s.Client.GetAtScope(ctx, tagsSpec.Scope)
 		if err != nil {
 			return errors.Wrap(err, "failed to get existing tags")
 		}
@@ -90,7 +90,7 @@ func (s *Service) Reconcile(ctx context.Context) error {
 					createdOrUpdatedTags[k] = to.StringPtr(v)
 				}
 
-				if _, err := s.client.UpdateAtScope(ctx, tagsSpec.Scope, resources.TagsPatchResource{Operation: "Merge", Properties: &resources.Tags{Tags: createdOrUpdatedTags}}); err != nil {
+				if _, err := s.Client.UpdateAtScope(ctx, tagsSpec.Scope, resources.TagsPatchResource{Operation: "Merge", Properties: &resources.Tags{Tags: createdOrUpdatedTags}}); err != nil {
 					return errors.Wrap(err, "cannot update tags")
 				}
 			}
@@ -101,7 +101,7 @@ func (s *Service) Reconcile(ctx context.Context) error {
 					deletedTags[k] = to.StringPtr(v)
 				}
 
-				if _, err := s.client.UpdateAtScope(ctx, tagsSpec.Scope, resources.TagsPatchResource{Operation: "Delete", Properties: &resources.Tags{Tags: deletedTags}}); err != nil {
+				if _, err := s.Client.UpdateAtScope(ctx, tagsSpec.Scope, resources.TagsPatchResource{Operation: "Delete", Properties: &resources.Tags{Tags: deletedTags}}); err != nil {
 					return errors.Wrap(err, "cannot update tags")
 				}
 			}

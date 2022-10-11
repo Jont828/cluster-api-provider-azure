@@ -236,7 +236,7 @@ func TestReconcileTags(t *testing.T) {
 
 			s := &Service{
 				Scope:  scopeMock,
-				client: clientMock,
+				Client: clientMock,
 			}
 
 			err := s.Reconcile(context.TODO())

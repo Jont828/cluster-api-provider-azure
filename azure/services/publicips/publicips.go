@@ -19,12 +19,12 @@ package publicips
 import (
 	"context"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2021-08-01/network"
 	"github.com/pkg/errors"
 	infrav1 "sigs.k8s.io/cluster-api-provider-azure/api/v1beta1"
 	"sigs.k8s.io/cluster-api-provider-azure/azure"
 	"sigs.k8s.io/cluster-api-provider-azure/azure/converters"
 	"sigs.k8s.io/cluster-api-provider-azure/azure/services/async"
+	"sigs.k8s.io/cluster-api-provider-azure/azure/services/tags"
 	"sigs.k8s.io/cluster-api-provider-azure/util/tele"
 )
 
@@ -43,6 +43,7 @@ type Service struct {
 	Scope PublicIPScope
 	async.Reconciler
 	async.Getter
+	TagsClient tags.Client
 }
 
 // New creates a new service.
@@ -51,6 +52,7 @@ func New(scope PublicIPScope) *Service {
 	return &Service{
 		Scope:      scope,
 		Getter:     client,
+		TagsClient: tags.NewClient(scope),
 		Reconciler: async.New(scope, client, client),
 	}
 }
@@ -134,17 +136,18 @@ func (s *Service) Delete(ctx context.Context) error {
 // isIPManaged returns true if the IP has an owned tag with the cluster name as value,
 // meaning that the IP's lifecycle is managed.
 func (s *Service) isIPManaged(ctx context.Context, spec azure.ResourceSpecGetter) (bool, error) {
-	result, err := s.Get(ctx, spec)
+	scope := azure.PublicIPID(s.Scope.SubscriptionID(), spec.ResourceGroupName(), spec.ResourceName())
+	result, err := s.TagsClient.GetAtScope(ctx, scope)
 	if err != nil {
 		return false, err
 	}
 
-	publicIP, ok := result.(network.PublicIPAddress)
-	if !ok {
-		return false, errors.Errorf("%T is not a network.PublicIPAddress", publicIP)
+	tagsMap := make(map[string]*string)
+	if result.Properties != nil && result.Properties.Tags != nil {
+		tagsMap = result.Properties.Tags
 	}
 
-	tags := converters.MapToTags(publicIP.Tags)
+	tags := converters.MapToTags(tagsMap)
 	return tags.HasOwned(s.Scope.ClusterName()), nil
 }
 
