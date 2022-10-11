@@ -34,13 +34,13 @@ import (
 func TestReconcileTags(t *testing.T) {
 	testcases := []struct {
 		name          string
-		expect        func(s *mock_tags.MockTagScopeMockRecorder, m *mock_tags.MockclientMockRecorder)
+		expect        func(s *mock_tags.MockTagScopeMockRecorder, m *mock_tags.MockClientMockRecorder)
 		expectedError string
 	}{
 		{
 			name:          "create tags for managed resources",
 			expectedError: "",
-			expect: func(s *mock_tags.MockTagScopeMockRecorder, m *mock_tags.MockclientMockRecorder) {
+			expect: func(s *mock_tags.MockTagScopeMockRecorder, m *mock_tags.MockClientMockRecorder) {
 				s.ClusterName().AnyTimes().Return("test-cluster")
 				gomock.InOrder(
 					s.TagsSpecs().Return([]azure.TagsSpec{
@@ -99,7 +99,7 @@ func TestReconcileTags(t *testing.T) {
 		{
 			name:          "do not create tags for unmanaged resources",
 			expectedError: "",
-			expect: func(s *mock_tags.MockTagScopeMockRecorder, m *mock_tags.MockclientMockRecorder) {
+			expect: func(s *mock_tags.MockTagScopeMockRecorder, m *mock_tags.MockClientMockRecorder) {
 				s.ClusterName().AnyTimes().Return("test-cluster")
 				s.TagsSpecs().Return([]azure.TagsSpec{
 					{
@@ -117,7 +117,7 @@ func TestReconcileTags(t *testing.T) {
 		{
 			name:          "delete removed tags",
 			expectedError: "",
-			expect: func(s *mock_tags.MockTagScopeMockRecorder, m *mock_tags.MockclientMockRecorder) {
+			expect: func(s *mock_tags.MockTagScopeMockRecorder, m *mock_tags.MockClientMockRecorder) {
 				s.ClusterName().AnyTimes().Return("test-cluster")
 				gomock.InOrder(
 					s.TagsSpecs().Return([]azure.TagsSpec{
@@ -152,7 +152,7 @@ func TestReconcileTags(t *testing.T) {
 		{
 			name:          "error getting existing tags",
 			expectedError: "failed to get existing tags: #: Internal Server Error: StatusCode=500",
-			expect: func(s *mock_tags.MockTagScopeMockRecorder, m *mock_tags.MockclientMockRecorder) {
+			expect: func(s *mock_tags.MockTagScopeMockRecorder, m *mock_tags.MockClientMockRecorder) {
 				s.ClusterName().AnyTimes().Return("test-cluster")
 				s.TagsSpecs().Return([]azure.TagsSpec{
 					{
@@ -170,7 +170,7 @@ func TestReconcileTags(t *testing.T) {
 		{
 			name:          "error updating tags",
 			expectedError: "cannot update tags: #: Internal Server Error: StatusCode=500",
-			expect: func(s *mock_tags.MockTagScopeMockRecorder, m *mock_tags.MockclientMockRecorder) {
+			expect: func(s *mock_tags.MockTagScopeMockRecorder, m *mock_tags.MockClientMockRecorder) {
 				s.ClusterName().AnyTimes().Return("test-cluster")
 				s.TagsSpecs().Return([]azure.TagsSpec{
 					{
@@ -200,7 +200,7 @@ func TestReconcileTags(t *testing.T) {
 		{
 			name:          "tags unchanged",
 			expectedError: "",
-			expect: func(s *mock_tags.MockTagScopeMockRecorder, m *mock_tags.MockclientMockRecorder) {
+			expect: func(s *mock_tags.MockTagScopeMockRecorder, m *mock_tags.MockClientMockRecorder) {
 				s.ClusterName().AnyTimes().Return("test-cluster")
 				s.TagsSpecs().Return([]azure.TagsSpec{
 					{
@@ -230,7 +230,7 @@ func TestReconcileTags(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 			scopeMock := mock_tags.NewMockTagScope(mockCtrl)
-			clientMock := mock_tags.NewMockclient(mockCtrl)
+			clientMock := mock_tags.NewMockClient(mockCtrl)
 
 			tc.expect(scopeMock.EXPECT(), clientMock.EXPECT())
 
