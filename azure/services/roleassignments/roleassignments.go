@@ -57,7 +57,7 @@ func New(scope RoleAssignmentScope) *Service {
 		Scope:                        scope,
 		virtualMachinesGetter:        virtualmachines.NewClient(scope),
 		virtualMachineScaleSetClient: scalesets.NewClient(scope),
-		Reconciler:                   async.New(scope, client, client),
+		Reconciler:                   async.New(scope, client, client, nil),
 	}
 }
 

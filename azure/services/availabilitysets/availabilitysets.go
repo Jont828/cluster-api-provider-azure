@@ -53,7 +53,7 @@ func New(scope AvailabilitySetScope, skuCache *resourceskus.Cache) *Service {
 		Scope:            scope,
 		Getter:           client,
 		resourceSKUCache: skuCache,
-		Reconciler:       async.New(scope, client, client),
+		Reconciler:       async.New(scope, client, client, nil),
 	}
 }
 

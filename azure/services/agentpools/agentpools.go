@@ -58,7 +58,7 @@ func New(scope AgentPoolScope) *Service {
 	client := newClient(scope)
 	return &Service{
 		scope:      scope,
-		Reconciler: async.New(scope, client, client),
+		Reconciler: async.New(scope, client, client, nil),
 	}
 }
 

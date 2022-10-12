@@ -37,16 +37,16 @@ type Service struct {
 	Scope FutureScope
 	Creator
 	Deleter
-	// TagsGetter
+	TagsGetter
 }
 
 // New creates a new async service.
-func New(scope FutureScope, createClient Creator, deleteClient Deleter) *Service {
+func New(scope FutureScope, createClient Creator, deleteClient Deleter, tagsClient TagsGetter) *Service {
 	return &Service{
-		Scope:   scope,
-		Creator: createClient,
-		Deleter: deleteClient,
-		// TagsGetter: tagsClient,
+		Scope:      scope,
+		Creator:    createClient,
+		Deleter:    deleteClient,
+		TagsGetter: tagsClient,
 	}
 }
 
@@ -227,21 +227,21 @@ func getRetryAfterFromError(err error) time.Duration {
 	return ret
 }
 
-// // IsManagedByCluster implements the logic for checking if a resource is managed by the cluster.
-// func (s *Service) IsManagedByCluster(ctx context.Context, scope string, clusterName string) (isManaged bool, err error) {
-// 	ctx, _, done := tele.StartSpanWithLogger(ctx, "async.Service.IsManagedByCluster")
-// 	defer done()
+// IsManagedByCluster implements the logic for checking if a resource is managed by the cluster.
+func (s *Service) IsManagedByCluster(ctx context.Context, scope string, clusterName string) (isManaged bool, err error) {
+	ctx, _, done := tele.StartSpanWithLogger(ctx, "async.Service.IsManagedByCluster")
+	defer done()
 
-// 	result, err := s.TagsGetter.GetAtScope(ctx, scope)
-// 	if err != nil {
-// 		return false, err
-// 	}
+	result, err := s.TagsGetter.GetAtScope(ctx, scope)
+	if err != nil {
+		return false, err
+	}
 
-// 	tagsMap := make(map[string]*string)
-// 	if result.Properties != nil && result.Properties.Tags != nil {
-// 		tagsMap = result.Properties.Tags
-// 	}
+	tagsMap := make(map[string]*string)
+	if result.Properties != nil && result.Properties.Tags != nil {
+		tagsMap = result.Properties.Tags
+	}
 
-// 	tags := converters.MapToTags(tagsMap)
-// 	return tags.HasOwned(clusterName), nil
-// }
+	tags := converters.MapToTags(tagsMap)
+	return tags.HasOwned(clusterName), nil
+}

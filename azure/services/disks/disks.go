@@ -46,7 +46,7 @@ func New(scope DiskScope) *Service {
 	client := newClient(scope)
 	return &Service{
 		Scope:      scope,
-		Reconciler: async.New(scope, nil, client),
+		Reconciler: async.New(scope, nil, client, nil),
 	}
 }
 

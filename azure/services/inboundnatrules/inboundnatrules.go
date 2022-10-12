@@ -50,7 +50,7 @@ func New(scope InboundNatScope) *Service {
 	return &Service{
 		Scope:      scope,
 		client:     client,
-		Reconciler: async.New(scope, client, client),
+		Reconciler: async.New(scope, client, client, nil),
 	}
 }
 

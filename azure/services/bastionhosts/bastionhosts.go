@@ -46,7 +46,7 @@ func New(scope BastionScope) *Service {
 	client := newClient(scope)
 	return &Service{
 		Scope:      scope,
-		Reconciler: async.New(scope, client, client),
+		Reconciler: async.New(scope, client, client, nil),
 	}
 }
 

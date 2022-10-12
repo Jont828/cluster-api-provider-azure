@@ -56,7 +56,7 @@ func New(scope ManagedClusterScope) *Service {
 	client := newClient(scope)
 	return &Service{
 		Scope:            scope,
-		Reconciler:       async.New(scope, client, client),
+		Reconciler:       async.New(scope, client, client, nil),
 		CredentialGetter: client,
 	}
 }

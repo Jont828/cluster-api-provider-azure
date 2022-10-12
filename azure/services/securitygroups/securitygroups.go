@@ -48,7 +48,7 @@ func New(scope NSGScope) *Service {
 	client := newClient(scope)
 	return &Service{
 		Scope:      scope,
-		Reconciler: async.New(scope, client, client),
+		Reconciler: async.New(scope, client, client, nil),
 	}
 }
 

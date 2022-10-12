@@ -54,7 +54,7 @@ func New(scope PublicIPScope) *Service {
 		Scope:      scope,
 		Getter:     client,
 		TagsGetter: tagsClient,
-		Reconciler: async.New(scope, client, client),
+		Reconciler: async.New(scope, client, client, nil),
 	}
 }
 

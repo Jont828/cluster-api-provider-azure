@@ -53,7 +53,7 @@ func New(scope SubnetScope) *Service {
 	Client := NewClient(scope)
 	return &Service{
 		Scope:      scope,
-		Reconciler: async.New(scope, Client, Client),
+		Reconciler: async.New(scope, Client, Client, nil),
 	}
 }
 

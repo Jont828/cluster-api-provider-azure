@@ -60,7 +60,7 @@ func New(scope VNetScope) *Service {
 		Scope:      scope,
 		Getter:     client,
 		TagsGetter: tagsClient,
-		Reconciler: async.New(scope, client, client),
+		Reconciler: async.New(scope, client, client, nil),
 	}
 }
 

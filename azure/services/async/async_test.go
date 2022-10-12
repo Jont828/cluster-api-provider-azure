@@ -332,7 +332,7 @@ func TestCreateResource(t *testing.T) {
 
 			tc.expect(scopeMock.EXPECT(), creatorMock.EXPECT(), specMock.EXPECT())
 
-			s := New(scopeMock, creatorMock, nil)
+			s := New(scopeMock, creatorMock, nil, nil)
 			result, err := s.CreateResource(context.TODO(), specMock, tc.serviceName)
 			if tc.expectedError != "" {
 				g.Expect(err).To(HaveOccurred())
@@ -425,7 +425,7 @@ func TestDeleteResource(t *testing.T) {
 
 			tc.expect(scopeMock.EXPECT(), deleterMock.EXPECT(), specMock.EXPECT())
 
-			s := New(scopeMock, nil, deleterMock)
+			s := New(scopeMock, nil, deleterMock, nil)
 			err := s.DeleteResource(context.TODO(), specMock, tc.serviceName)
 			if tc.expectedError != "" {
 				g.Expect(err).To(HaveOccurred())

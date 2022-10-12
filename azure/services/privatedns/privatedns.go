@@ -61,9 +61,9 @@ func New(scope Scope) *Service {
 		zoneGetter:         zoneClient,
 		vnetLinkGetter:     vnetLinkClient,
 		TagsGetter:         tagsClient,
-		zoneReconciler:     async.New(scope, zoneClient, zoneClient),
-		vnetLinkReconciler: async.New(scope, vnetLinkClient, vnetLinkClient),
-		recordReconciler:   async.New(scope, recordSetsClient, recordSetsClient),
+		zoneReconciler:     async.New(scope, zoneClient, zoneClient, nil),
+		vnetLinkReconciler: async.New(scope, vnetLinkClient, vnetLinkClient, nil),
+		recordReconciler:   async.New(scope, recordSetsClient, recordSetsClient, nil),
 	}
 }
 

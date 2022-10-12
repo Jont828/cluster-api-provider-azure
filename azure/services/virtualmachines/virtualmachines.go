@@ -64,7 +64,7 @@ func New(scope VMScope) *Service {
 		Scope:            scope,
 		interfacesGetter: networkinterfaces.NewClient(scope),
 		publicIPsGetter:  publicips.NewClient(scope),
-		Reconciler:       async.New(scope, Client, Client),
+		Reconciler:       async.New(scope, Client, Client, nil),
 	}
 }
 
