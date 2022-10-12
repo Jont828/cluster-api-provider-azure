@@ -1004,3 +1004,13 @@ func (s *ClusterScope) TagsSpecs() []azure.TagsSpec {
 		},
 	}
 }
+
+// func (s *ClusterScope) IsManagedByCluster(tagsResource resources.TagsResource) bool {
+// 	tagsMap := make(map[string]*string)
+// 	if tagsResource.Properties != nil && tagsResource.Properties.Tags != nil {
+// 		tagsMap = tagsResource.Properties.Tags
+// 	}
+
+// 	tags := converters.MapToTags(tagsMap)
+// 	return tags.HasOwned(s.ClusterName())
+// }

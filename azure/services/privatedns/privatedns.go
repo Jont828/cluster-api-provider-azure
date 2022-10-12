@@ -44,7 +44,7 @@ type Service struct {
 	Scope              Scope
 	zoneGetter         async.Getter
 	vnetLinkGetter     async.Getter
-	TagsClient         tags.Client
+	TagsGetter         async.TagsGetter
 	zoneReconciler     async.Reconciler
 	vnetLinkReconciler async.Reconciler
 	recordReconciler   async.Reconciler
@@ -60,7 +60,7 @@ func New(scope Scope) *Service {
 		Scope:              scope,
 		zoneGetter:         zoneClient,
 		vnetLinkGetter:     vnetLinkClient,
-		TagsClient:         tagsClient,
+		TagsGetter:         tagsClient,
 		zoneReconciler:     async.New(scope, zoneClient, zoneClient),
 		vnetLinkReconciler: async.New(scope, vnetLinkClient, vnetLinkClient),
 		recordReconciler:   async.New(scope, recordSetsClient, recordSetsClient),
@@ -140,8 +140,8 @@ func (s *Service) Delete(ctx context.Context) error {
 // meaning that the vnet link lifecycle is managed.
 func (s *Service) isVnetLinkManaged(ctx context.Context, spec azure.ResourceSpecGetter) (bool, error) {
 	// TODO: add a function for getting this ID.
-	scope := azure.PublicIPID(s.Scope.SubscriptionID(), spec.ResourceGroupName(), spec.ResourceName())
-	result, err := s.TagsClient.GetAtScope(ctx, scope)
+	scope := azure.VirtualNetworkLinkID(s.Scope.SubscriptionID(), spec.ResourceGroupName(), spec.OwnerResourceName(), spec.ResourceName())
+	result, err := s.TagsGetter.GetAtScope(ctx, scope)
 	if err != nil {
 		return false, err
 	}
@@ -163,9 +163,8 @@ func (s *Service) IsManaged(ctx context.Context) (bool, error) {
 		return false, errors.Errorf("no private dns zone spec available")
 	}
 
-	// TODO: add a function for getting this ID.
-	scope := azure.PublicIPID(s.Scope.SubscriptionID(), zoneSpec.ResourceGroupName(), zoneSpec.ResourceName())
-	result, err := s.TagsClient.GetAtScope(ctx, scope)
+	scope := azure.PrivateDNSZoneID(s.Scope.SubscriptionID(), zoneSpec.ResourceGroupName(), zoneSpec.ResourceName())
+	result, err := s.TagsGetter.GetAtScope(ctx, scope)
 	if err != nil {
 		return false, err
 	}

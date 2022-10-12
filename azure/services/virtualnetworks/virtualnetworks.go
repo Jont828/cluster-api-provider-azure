@@ -49,16 +49,17 @@ type Service struct {
 	Scope VNetScope
 	async.Reconciler
 	async.Getter
-	TagsClient tags.Client
+	async.TagsGetter
 }
 
 // New creates a new service.
 func New(scope VNetScope) *Service {
 	client := newClient(scope)
+	tagsClient := tags.NewClient(scope)
 	return &Service{
 		Scope:      scope,
 		Getter:     client,
-		TagsClient: tags.NewClient(scope),
+		TagsGetter: tagsClient,
 		Reconciler: async.New(scope, client, client),
 	}
 }
@@ -160,7 +161,7 @@ func (s *Service) IsManaged(ctx context.Context) (bool, error) {
 	}
 
 	scope := azure.VNetID(s.Scope.SubscriptionID(), spec.ResourceGroupName(), spec.ResourceName())
-	result, err := s.TagsClient.GetAtScope(ctx, scope)
+	result, err := s.TagsGetter.GetAtScope(ctx, scope)
 	if err != nil {
 		return false, err
 	}

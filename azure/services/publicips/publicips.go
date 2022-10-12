@@ -43,16 +43,17 @@ type Service struct {
 	Scope PublicIPScope
 	async.Reconciler
 	async.Getter
-	TagsClient tags.Client
+	async.TagsGetter
 }
 
 // New creates a new service.
 func New(scope PublicIPScope) *Service {
 	client := NewClient(scope)
+	tagsClient := tags.NewClient(scope)
 	return &Service{
 		Scope:      scope,
 		Getter:     client,
-		TagsClient: tags.NewClient(scope),
+		TagsGetter: tagsClient,
 		Reconciler: async.New(scope, client, client),
 	}
 }
@@ -137,7 +138,7 @@ func (s *Service) Delete(ctx context.Context) error {
 // meaning that the IP's lifecycle is managed.
 func (s *Service) isIPManaged(ctx context.Context, spec azure.ResourceSpecGetter) (bool, error) {
 	scope := azure.PublicIPID(s.Scope.SubscriptionID(), spec.ResourceGroupName(), spec.ResourceName())
-	result, err := s.TagsClient.GetAtScope(ctx, scope)
+	result, err := s.TagsGetter.GetAtScope(ctx, scope)
 	if err != nil {
 		return false, err
 	}
