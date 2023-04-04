@@ -29,6 +29,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/drone/envsubst/v2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -41,7 +42,8 @@ import (
 
 func init() {
 	flag.StringVar(&configPath, "e2e.config", "", "path to the e2e config file")
-	flag.StringVar(&cloudProviderAzurePath, "e2e.cloud-provider", "", "path to the e2e config file")
+	flag.StringVar(&cloudProviderAzurePath, "e2e.cloud-provider-azure", "", "path to the cloud-provider-azure HelmChartProxy")
+	flag.StringVar(&cloudProviderAzureCIPath, "e2e.cloud-provider-azure-ci", "", "path to the cloud-provider-azure HelmChartProxy with CI artifacts")
 	flag.StringVar(&artifactFolder, "e2e.artifacts-folder", "", "folder where e2e test artifact should be stored")
 	flag.BoolVar(&useCIArtifacts, "kubetest.use-ci-artifacts", false, "use the latest build from the main branch of the Kubernetes repository. Set KUBERNETES_VERSION environment variable to latest-1.xx to use the build from 1.xx release branch.")
 	flag.BoolVar(&usePRArtifacts, "kubetest.use-pr-artifacts", false, "use the build from a PR of the Kubernetes repository")
@@ -81,15 +83,25 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	bootstrapClient := bootstrapClusterProxy.GetClient()
 	Expect(bootstrapClient).NotTo(BeNil())
 
-	var contents []byte
+	path := cloudProviderAzurePath
 	if useCIArtifacts {
-
+		path = cloudProviderAzureCIPath
 	}
-	contents, err := os.ReadFile(cloudProviderAzurePath)
+	content, err := os.ReadFile(path)
 	Expect(err).NotTo(HaveOccurred())
-	cloudProviderAzure := &unstructured.Unstructured{}
-	cloudProviderAzure.UnmarshalJSON([]byte(contents))
-	if err := bootstrapClient.Create(context.Background(), cloudProviderAzure); err != nil {
+
+	if useCIArtifacts {
+		result, err := envsubst.EvalEnv(string(content))
+		Expect(err).NotTo(HaveOccurred())
+		content = []byte(result)
+	}
+	Logf("Cloud Provider Azure HCP: %s", string(content))
+
+	cloudProviderAzureHCP := &unstructured.Unstructured{}
+	cloudProviderAzureHCP.UnmarshalJSON(content)
+	if err := bootstrapClient.Create(context.Background(), cloudProviderAzureHCP); err != nil {
+		Logf("Failed to create cloud provider azure HCP: %v", err)
+		Expect(err).NotTo(HaveOccurred())
 	}
 
 	// TODO: set this helm stuff up
