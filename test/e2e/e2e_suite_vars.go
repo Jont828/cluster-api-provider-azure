@@ -36,6 +36,8 @@ var (
 	// configPath is the path to the e2e config file.
 	configPath string
 
+	cloudProviderAzurePath string
+
 	// useExistingCluster instructs the test to use the current cluster instead of creating a new one (default discovery rules apply).
 	useExistingCluster bool
 

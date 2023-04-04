@@ -164,6 +164,8 @@ GINKGO_ARGS ?=
 ARTIFACTS ?= $(ROOT_DIR)/_artifacts
 E2E_CONF_FILE ?= $(ROOT_DIR)/test/e2e/config/azure-dev.yaml
 E2E_CONF_FILE_ENVSUBST := $(ROOT_DIR)/test/e2e/config/azure-dev-envsubst.yaml
+E2E_CLOUD_PROVIDER_CONFIG ?= $(ROOT_DIR)/templates/caaph/cloud-provider-azure.yaml
+
 SKIP_CLEANUP ?= false
 SKIP_LOG_COLLECTION ?= false
 SKIP_CREATE_MGMT_CLUSTER ?= false

@@ -4,6 +4,7 @@ metadata:
   labels:
     cni-windows: calico
     csi-proxy: enabled
+    enabledCloudProviderAzureChart: true
     windows: enabled
   name: ${CLUSTER_NAME}
   namespace: default

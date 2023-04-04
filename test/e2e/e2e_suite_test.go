@@ -31,14 +31,17 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	capi_e2e "sigs.k8s.io/cluster-api/test/e2e"
 	"sigs.k8s.io/cluster-api/test/framework"
 	"sigs.k8s.io/cluster-api/test/framework/bootstrap"
+
 	"sigs.k8s.io/cluster-api/test/framework/clusterctl"
 )
 
 func init() {
 	flag.StringVar(&configPath, "e2e.config", "", "path to the e2e config file")
+	flag.StringVar(&cloudProviderAzurePath, "e2e.cloud-provider", "", "path to the e2e config file")
 	flag.StringVar(&artifactFolder, "e2e.artifacts-folder", "", "folder where e2e test artifact should be stored")
 	flag.BoolVar(&useCIArtifacts, "kubetest.use-ci-artifacts", false, "use the latest build from the main branch of the Kubernetes repository. Set KUBERNETES_VERSION environment variable to latest-1.xx to use the build from 1.xx release branch.")
 	flag.BoolVar(&usePRArtifacts, "kubetest.use-pr-artifacts", false, "use the build from a PR of the Kubernetes repository")
@@ -73,6 +76,23 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 
 	By("Initializing the bootstrap cluster")
 	initBootstrapCluster(bootstrapClusterProxy, e2eConfig, clusterctlConfigPath, artifactFolder)
+
+	By("Initialize add-on templates")
+	bootstrapClient := bootstrapClusterProxy.GetClient()
+	Expect(bootstrapClient).NotTo(BeNil())
+
+	var contents []byte
+	if useCIArtifacts {
+
+	}
+	contents, err := os.ReadFile(cloudProviderAzurePath)
+	Expect(err).NotTo(HaveOccurred())
+	cloudProviderAzure := &unstructured.Unstructured{}
+	cloudProviderAzure.UnmarshalJSON([]byte(contents))
+	if err := bootstrapClient.Create(context.Background(), cloudProviderAzure); err != nil {
+	}
+
+	// TODO: set this helm stuff up
 
 	// encode the e2e config into the byte array.
 	var configBuf bytes.Buffer
