@@ -222,4 +222,4 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
-replace sigs.k8s.io/cluster-api => /home/jonathan/go/src/sigs.k8s.io/cluster-api
+replace sigs.k8s.io/cluster-api => github.com/Jont828/cluster-api v0.4.3-0.20230404191032-0e4d9e25e52d
