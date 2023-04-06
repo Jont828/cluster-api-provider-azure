@@ -71,7 +71,7 @@ var _ = Describe("Running the Cluster API E2E tests", func() {
 				Name:      IdentitySecretName,
 				Namespace: identityNamespace.Name,
 				Labels: map[string]string{
-					clusterctlv1.ClusterctlMoveHierarchyLabelName: "true",
+					clusterctlv1.ClusterctlMoveHierarchyLabel: "true",
 				},
 			},
 			Type: corev1.SecretTypeOpaque,
@@ -301,7 +301,7 @@ func getPreInitFunc(ctx context.Context) func(proxy framework.ClusterProxy) {
 				Name:      IdentitySecretName,
 				Namespace: "default",
 				Labels: map[string]string{
-					clusterctlv1.ClusterctlMoveHierarchyLabelName: "true",
+					clusterctlv1.ClusterctlMoveHierarchyLabel: "true",
 				},
 			},
 			Type: corev1.SecretTypeOpaque,
