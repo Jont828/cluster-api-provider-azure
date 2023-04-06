@@ -250,7 +250,7 @@ func createAzureIdentityWithBindings(ctx context.Context, azureIdentity *infrav1
 				aadpodv1.BehaviorKey: "namespaced",
 			},
 			Labels: map[string]string{
-				clusterv1.ClusterLabelName:                  clusterMeta.Name,
+				clusterv1.ClusterNameLabel:                  clusterMeta.Name,
 				infrav1.ClusterLabelNamespace:               clusterMeta.Namespace,
 				clusterctl.ClusterctlMoveHierarchyLabelName: "true",
 			},
@@ -279,7 +279,7 @@ func createAzureIdentityWithBindings(ctx context.Context, azureIdentity *infrav1
 			Name:      fmt.Sprintf("%s-binding", copiedIdentity.Name),
 			Namespace: copiedIdentity.Namespace,
 			Labels: map[string]string{
-				clusterv1.ClusterLabelName:                  clusterMeta.Name,
+				clusterv1.ClusterNameLabel:                  clusterMeta.Name,
 				infrav1.ClusterLabelNamespace:               clusterMeta.Namespace,
 				clusterctl.ClusterctlMoveHierarchyLabelName: "true",
 			},
