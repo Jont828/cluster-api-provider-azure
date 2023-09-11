@@ -4,8 +4,10 @@ namespace: default
 resources:
   - ../../../flavors/aks
   - patches/aks-pool2.yaml
+  - ../../../addons/cluster-api-helm/calico.yaml
 patchesStrategicMerge:
   - ../patches/tags-aks.yaml
   - patches/aks-pool0.yaml
   - patches/aks-pool1.yaml
   - patches/addons.yaml
+  - ../patches/cluster-label.yaml

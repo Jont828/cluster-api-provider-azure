@@ -68,7 +68,7 @@ func InstallCalicoAndCloudProviderAzureHelmChart(ctx context.Context, input clus
 	InstallHelmChart(ctx, clusterProxy, defaultNamespace, cloudProviderAzureHelmRepoURL, cloudProviderAzureChartName, cloudProviderAzureHelmReleaseName, options, "")
 
 	// We do this before waiting for the pods to be ready because there is a co-dependency between CNI (nodes ready) and cloud-provider being initialized.
-	InstallCNI(ctx, input, cidrBlocks, hasWindows)
+	EnsureCalicoIsReady(ctx, input, cidrBlocks, hasWindows)
 
 	By("Waiting for Ready cloud-controller-manager deployment pods")
 	for _, d := range []string{"cloud-controller-manager"} {

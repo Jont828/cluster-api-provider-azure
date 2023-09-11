@@ -21,13 +21,8 @@ package e2e
 
 import (
 	"context"
-	"fmt"
-	"os"
-	"path/filepath"
 
 	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-	k8snet "k8s.io/utils/net"
 	"sigs.k8s.io/cluster-api/test/framework/clusterctl"
 )
 
@@ -42,39 +37,12 @@ const (
 	AzureCNIv1               string = "azure-cni-v1"
 )
 
-// InstallCNI installs the CNI plugin depending on the input.CNIManifestPath
-func InstallCNI(ctx context.Context, input clusterctl.ApplyCustomClusterTemplateAndWaitInput, cidrBlocks []string, hasWindows bool) {
-	if input.CNIManifestPath != "" {
-		InstallCNIManifest(ctx, input, cidrBlocks, hasWindows)
-	} else {
-		InstallCalicoHelmChart(ctx, input, cidrBlocks, hasWindows)
-	}
-}
+// EnsureCalicoIsReady installs the CNI plugin depending on the input.CNIManifestPath
+func EnsureCalicoIsReady(ctx context.Context, input clusterctl.ApplyCustomClusterTemplateAndWaitInput, cidrBlocks []string, hasWindows bool) {
+	specName := "ensure-calico"
 
-// InstallCNIManifest installs the CNI manifest provided by the user
-func InstallCNIManifest(ctx context.Context, input clusterctl.ApplyCustomClusterTemplateAndWaitInput, cidrBlocks []string, hasWindows bool) {
-	By("Installing a CNI plugin to the workload cluster")
-	workloadCluster := input.ClusterProxy.GetWorkloadCluster(ctx, input.Namespace, input.ClusterName)
-
-	cniYaml, err := os.ReadFile(input.CNIManifestPath)
-	Expect(err).ShouldNot(HaveOccurred())
-
-	Expect(workloadCluster.Apply(ctx, cniYaml)).To(Succeed())
-}
-
-// InstallCalicoHelmChart installs the official calico helm chart
-// and validates that expected pods exist and are Ready.
-func InstallCalicoHelmChart(ctx context.Context, input clusterctl.ApplyCustomClusterTemplateAndWaitInput, cidrBlocks []string, hasWindows bool) {
-	specName := "calico-install"
-
-	By("Installing Calico CNI via helm")
-	values := getCalicoValues(cidrBlocks)
+	By("Ensuring Calico CNI is installed via CAAPH")
 	clusterProxy := input.ClusterProxy.GetWorkloadCluster(ctx, input.Namespace, input.ClusterName)
-	InstallHelmChart(ctx, clusterProxy, calicoOperatorNamespace, calicoHelmChartRepoURL, calicoHelmChartName, calicoHelmReleaseName, values, os.Getenv(CalicoVersion))
-	workloadClusterClient := clusterProxy.GetClient()
-
-	// Copy the kubeadm configmap to the calico-system namespace. This is a workaround needed for the calico-node-windows daemonset to be able to run in the calico-system namespace.
-	CopyConfigMap(ctx, input, workloadClusterClient, kubeadmConfigMapName, kubesystem, CalicoSystemNamespace)
 
 	By("Waiting for Ready tigera-operator deployment pods")
 	for _, d := range []string{"tigera-operator"} {
@@ -92,39 +60,4 @@ func InstallCalicoHelmChart(ctx context.Context, input clusterctl.ApplyCustomClu
 		waitInput := GetWaitForDeploymentsAvailableInput(ctx, clusterProxy, d, CalicoAPIServerNamespace, specName)
 		WaitForDeploymentsAvailable(ctx, waitInput, e2eConfig.GetIntervals(specName, "wait-deployment")...)
 	}
-}
-
-func getCalicoValues(cidrBlocks []string) *HelmOptions {
-	var ipv6CidrBlock, ipv4CidrBlock string
-	var values *HelmOptions
-	for _, cidr := range cidrBlocks {
-		if k8snet.IsIPv6CIDRString(cidr) {
-			ipv6CidrBlock = cidr
-		} else {
-			Expect(k8snet.IsIPv4CIDRString(cidr)).To(BeTrue(), "CIDR %s is not a valid IPv4 or IPv6 CIDR", cidr)
-			ipv4CidrBlock = cidr
-		}
-	}
-	addonsPath := e2eConfig.GetVariable(AddonsPath)
-	switch {
-	case ipv6CidrBlock != "" && ipv4CidrBlock != "":
-		By("Configuring calico CNI helm chart for dual-stack configuration")
-		values = &HelmOptions{
-			StringValues: []string{fmt.Sprintf("installation.calicoNetwork.ipPools[0].cidr=%s", ipv4CidrBlock), fmt.Sprintf("installation.calicoNetwork.ipPools[1].cidr=%s", ipv6CidrBlock)},
-			ValueFiles:   []string{filepath.Join(addonsPath, "calico-dual-stack", "values.yaml")},
-		}
-	case ipv6CidrBlock != "":
-		By("Configuring calico CNI helm chart for IPv6 configuration")
-		values = &HelmOptions{
-			StringValues: []string{fmt.Sprintf("installation.calicoNetwork.ipPools[0].cidr=%s", ipv6CidrBlock)},
-			ValueFiles:   []string{filepath.Join(addonsPath, "calico-ipv6", "values.yaml")},
-		}
-	default:
-		By("Configuring calico CNI helm chart for IPv4 configuration")
-		values = &HelmOptions{
-			StringValues: []string{fmt.Sprintf("installation.calicoNetwork.ipPools[0].cidr=%s", ipv4CidrBlock)},
-			ValueFiles:   []string{filepath.Join(addonsPath, "calico", "values.yaml")},
-		}
-	}
-	return values
 }
