@@ -157,8 +157,6 @@ providers:
       replacements:
       - old: "imagePullPolicy: Always"
         new: "imagePullPolicy: IfNotPresent"
-      - old: "image: registry.k8s.io/cluster-api-helm/cluster-api-helm-controller:v0.1.0-alpha.9"
-        new: "image: gcr.io/k8s-staging-cluster-api-helm/cluster-api-helm-controller:v0.1.0-alpha.9"
 
 variables:
   AKS_KUBERNETES_VERSION: "latest"
