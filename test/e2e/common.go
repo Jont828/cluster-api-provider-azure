@@ -277,9 +277,9 @@ func EnsureControlPlaneInitialized(ctx context.Context, input clusterctl.ApplyCu
 	_, hasWindows := cluster.Labels["cni-windows"]
 	if kubeadmControlPlane.Spec.KubeadmConfigSpec.ClusterConfiguration.ControllerManager.ExtraArgs["cloud-provider"] != "azure" {
 		// There is a co-dependency between cloud-provider and CNI so we install both together if cloud-provider is external.
-		InstallCalicoAndCloudProviderAzureHelmChart(ctx, input, cluster.Spec.ClusterNetwork.Pods.CIDRBlocks, hasWindows)
+		InstallCNIAndCloudProviderAzureHelmChart(ctx, input, cluster.Spec.ClusterNetwork.Pods.CIDRBlocks, hasWindows)
 	} else {
-		EnsureCalicoIsReady(ctx, input, cluster.Spec.ClusterNetwork.Pods.CIDRBlocks, hasWindows)
+		EnsureCNI(ctx, input, cluster.Spec.ClusterNetwork.Pods.CIDRBlocks, hasWindows)
 	}
 	controlPlane := discoveryAndWaitForControlPlaneInitialized(ctx, input, result)
 	InstallAzureDiskCSIDriverHelmChart(ctx, input, hasWindows)

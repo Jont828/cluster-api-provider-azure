@@ -21,8 +21,10 @@ package e2e
 
 import (
 	"context"
+	"os"
 
 	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 	"sigs.k8s.io/cluster-api/test/framework/clusterctl"
 )
 
@@ -36,6 +38,26 @@ const (
 	kubeadmConfigMapName     string = "kubeadm-config"
 	AzureCNIv1               string = "azure-cni-v1"
 )
+
+// EnsureCNI installs the CNI plugin depending on the input.CNIManifestPath
+func EnsureCNI(ctx context.Context, input clusterctl.ApplyCustomClusterTemplateAndWaitInput, cidrBlocks []string, hasWindows bool) {
+	if input.CNIManifestPath != "" {
+		InstallCNIManifest(ctx, input, cidrBlocks, hasWindows)
+	} else {
+		EnsureCalicoIsReady(ctx, input, cidrBlocks, hasWindows)
+	}
+}
+
+// InstallCNIManifest installs the CNI manifest provided by the user
+func InstallCNIManifest(ctx context.Context, input clusterctl.ApplyCustomClusterTemplateAndWaitInput, cidrBlocks []string, hasWindows bool) {
+	By("Installing a CNI plugin to the workload cluster")
+	workloadCluster := input.ClusterProxy.GetWorkloadCluster(ctx, input.Namespace, input.ClusterName)
+
+	cniYaml, err := os.ReadFile(input.CNIManifestPath)
+	Expect(err).ShouldNot(HaveOccurred())
+
+	Expect(workloadCluster.Apply(ctx, cniYaml)).To(Succeed())
+}
 
 // EnsureCalicoIsReady copies the kubeadm configmap to the calico-system namespace and waits for the calico pods to be ready.
 func EnsureCalicoIsReady(ctx context.Context, input clusterctl.ApplyCustomClusterTemplateAndWaitInput, cidrBlocks []string, hasWindows bool) {
