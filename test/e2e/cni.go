@@ -37,12 +37,18 @@ const (
 	AzureCNIv1               string = "azure-cni-v1"
 )
 
-// EnsureCalicoIsReady installs the CNI plugin depending on the input.CNIManifestPath
+// EnsureCalicoIsReady copies the kubeadm configmap to the calico-system namespace and waits for the calico pods to be ready.
 func EnsureCalicoIsReady(ctx context.Context, input clusterctl.ApplyCustomClusterTemplateAndWaitInput, cidrBlocks []string, hasWindows bool) {
 	specName := "ensure-calico"
 
 	By("Ensuring Calico CNI is installed via CAAPH")
 	clusterProxy := input.ClusterProxy.GetWorkloadCluster(ctx, input.Namespace, input.ClusterName)
+
+	By("Copying kubeadm config map to calico-system namespace")
+	workloadClusterClient := clusterProxy.GetClient()
+
+	// Copy the kubeadm configmap to the calico-system namespace. This is a workaround needed for the calico-node-windows daemonset to be able to run in the calico-system namespace.
+	CopyConfigMap(ctx, input, workloadClusterClient, kubeadmConfigMapName, kubesystem, CalicoSystemNamespace)
 
 	By("Waiting for Ready tigera-operator deployment pods")
 	for _, d := range []string{"tigera-operator"} {
