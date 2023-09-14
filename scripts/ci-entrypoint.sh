@@ -163,6 +163,22 @@ get_cloud_provider() {
     fi
 }
 
+# copy_kubeadm_config_map copies the kubeadm configmap into the calico-system namespace.
+# any retryable operation in this function must return a non-zero exit code on failure so that we can
+# retry it using a `until copy_kubeadm_config_map; do sleep 5; done` pattern;
+# and any statement must be idempotent so that subsequent retry attempts can make forward progress.
+copy_kubeadm_config_map() {
+    # Copy the kubeadm configmap to the calico-system namespace.
+    # This is a workaround needed for the calico-node-windows daemonset
+    # to be able to run in the calico-system namespace.
+    # First, validate that the kubeadm-config configmap has been created.
+    "${KUBECTL}" get configmap kubeadm-config --namespace=kube-system -o yaml || return 1
+    "${KUBECTL}" create namespace calico-system --dry-run=client -o yaml | kubectl apply -f - || return 1
+    if ! "${KUBECTL}" get configmap kubeadm-config --namespace=calico-system; then
+        "${KUBECTL}" get configmap kubeadm-config --namespace=kube-system -o yaml | sed 's/namespace: kube-system/namespace: calico-system/' | "${KUBECTL}" apply -f - || return 1
+    fi
+}
+
 # install_cloud_provider_azure installs OOT cloud-provider-azure componentry onto the Cluster.
 # Any retryable operation in this function must return a non-zero exit code on failure so that we can
 # retry it using a `until install_cloud_provider_azure; do sleep 5; done` pattern;
@@ -238,6 +254,9 @@ install_addons() {
     done
     # export the target cluster KUBECONFIG if not already set
     export KUBECONFIG="${KUBECONFIG:-${PWD}/kubeconfig}"
+    until copy_kubeadm_config_map; do
+        sleep 5
+    done
     # install cloud-provider-azure components, if using out-of-tree
     until get_cloud_provider; do
         sleep 5
