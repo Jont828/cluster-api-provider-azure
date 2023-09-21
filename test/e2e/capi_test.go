@@ -257,7 +257,7 @@ var _ = Describe("Running the Cluster API E2E tests", func() {
 						PreInit:                   getPreInitFunc(ctx),
 						InitWithProvidersContract: "v1beta1",
 						ControlPlaneWaiters: clusterctl.ControlPlaneWaiters{
-							WaitForControlPlaneInitialized: EnsureControlPlaneInitialized,
+							WaitForControlPlaneInitialized: EnsureControlPlaneInitializedNoAddons,
 						},
 						InitWithBinary:                  "https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.0.5/clusterctl-{OS}-{ARCH}",
 						InitWithCoreProvider:            "cluster-api:v1.0.5",
