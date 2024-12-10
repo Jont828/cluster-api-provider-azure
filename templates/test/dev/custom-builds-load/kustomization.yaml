@@ -3,7 +3,10 @@ kind: Kustomization
 namespace: default
 resources:
 - ../custom-builds
+- storageclass-resource-set.yaml
 patches:
+- path: patches/cluster-label-storageclass.yaml
+- path: patches/cluster-label-azuredisk.yaml
 - path: patches/kcp-scheduler.yaml
 generatorOptions:
   annotations:
