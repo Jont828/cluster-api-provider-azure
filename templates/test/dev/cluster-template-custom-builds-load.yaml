@@ -91,6 +91,10 @@ spec:
           extraArgs:
             quota-backend-bytes: "8589934592"
       kubernetesVersion: ci/${CI_VERSION}
+      scheduler:
+        extraArgs:
+          authorization-always-allow-paths: /healthz,/readyz,/livez,/metrics
+          bind-address: 0.0.0.0
     diskSetup:
       filesystems:
       - device: /dev/disk/azure/scsi1/lun0
