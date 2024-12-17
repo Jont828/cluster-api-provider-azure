@@ -1422,5 +1422,5 @@ metadata:
     note: generated
   labels:
     type: generated
-  name: storageclass-${CLUSTER_NAME}
+  name: ${CLUSTER_NAME}-storageclass
   namespace: default
