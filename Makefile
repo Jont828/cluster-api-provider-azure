@@ -386,6 +386,8 @@ create-workload-cluster: $(ENVSUBST) $(KUBECTL) ## Create a workload cluster.
 	$(KUBECTL) -n default wait --for=condition=Ready --timeout=10m cluster "$(CLUSTER_NAME)"
 
 	./scripts/peer-vnets.sh	
+	
+	./scripts/create-acr-endpoint.sh	
 
 	@echo 'run "$(KUBECTL) --kubeconfig=./kubeconfig ..." to work with the new target cluster'
 
