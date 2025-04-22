@@ -776,7 +776,7 @@ kind-create: $(KUBECTL) ## Create capz kind cluster if needed.
 	./scripts/kind-with-registry.sh
 
 .PHONY: aks-create
-aks-create: $(KUBECTL) ## Create aks cluster as mgmt cluster.
+aks-create: $(KUBECTL) $(YQ) ## Create aks cluster as mgmt cluster.
 	./scripts/aks-as-mgmt.sh
 	MANIFEST_IMG=$(CONTROLLER_IMG) MANIFEST_TAG=$(TAG) $(MAKE) set-manifest-image
 
